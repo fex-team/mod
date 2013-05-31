@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>basejs</title>
+    <script type="text/javascript" src="../lib/qunit-1.11.0.js"></script>
+    <script type="text/javascript" src="../lib/UserAction.js"></script>
+    <link rel="stylesheet" type="text/css" href="../lib/qunit-1.11.0.css">
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script src="../mod.js"></script>
+
+<script>
+require.resourceMap({
+    res: {
+        'single/car.js': {
+            url: 'single/car.js',
+            deps: ['single/engine.js']
+        },
+        'multi/root.js': {
+            deps: ['multi/2.js', 'multi/1.js']
+        },
+        'complex/root1.js': {
+            deps: ['complex/root1-1.js', 'complex/root1-common.js']
+        },
+        'complex/root2.js': {
+            deps: ['complex/root1-common.js', 'complex/root1-3.js']
+        },
+        'ring/1.js': {
+            deps: ['ring/2.js']
+        },
+        'ring/2.js': {
+            deps: ['ring/3.js']
+        },
+        'ring/3.js': {
+            deps: ['ring/1.js']
+        },
+        'cross/1.js': {
+            deps: ['cross/2.js', 'cross/3.js']
+        },
+        'cross/2.js': {
+            deps: ['cross/3.js', 'cross/1.js']
+        },
+        'cross/2.js': {
+            deps: ['cross/1.js', 'cross/2.js']
+        },
+        'self/1.js': {
+            deps:  ['self/1.js']
+        },
+        'self/1.js': {
+            deps:  ['self/1.js']
+        },
+        'ringcross/1.js': {
+            deps:  ['ringcross/1.js', 'ringcross/2.js', 'ringcross/3.js']
+        },
+        'ringcross/2.js': {
+            deps:  ['ringcross/1.js', 'ringcross/2.js', 'ringcross/3.js']
+        },
+        'ringcross/3.js': {
+            deps:  ['ringcross/1.js', 'ringcross/2.js', 'ringcross/3.js']
+        },
+        'ringcross/3.js': {
+            deps:  ['ringcross/1.js', 'ringcross/2.js', 'ringcross/3.js']
+        },
+        'async_in_async/first.js': {
+            deps:  ['async_in_async/second.js']
+        }
+    }
+});
+
+module("异步");
+asyncTest("单一依赖", function() {
+    require.async('single/car.js', function(car) {
+        equal(car.run(90), 90, 'right!');
+        start();
+    });
+});
+
+asyncTest("多个依赖", function() {
+    require.async('multi/root.js', function(root) {
+        equal(root.show(), 1+2, 'right!');
+        start();
+    });
+});
+
+asyncTest("复杂依赖", function() {
+    require.async('complex/root1.js', function(root1) {
+        equal(root1.root1_1.say(), '1-1', 'root1.root1_1.say right');
+        equal(root1.rootCommon.say(), 'common', 'root1.rootCommon.say right');
+        start();
+    });
+});
+
+asyncTest("环形依赖", function() {
+    require.async('ring/1.js', function(ring) {
+        equal(ring.test(100), 1, 'right');
+        start();
+    });
+});
+
+asyncTest("交叉依赖", function() {
+    require.async('cross/1.js', function(mod) {
+        equal(mod.num(), 400+300, 'right');
+        start();
+    });
+});
+
+asyncTest("自身依赖", function() {
+    require.async('self/1.js', function(mod) {
+        equal(mod.test(), 123, 'right');
+        start();
+    });
+});
+
+asyncTest("循环交叉依赖", function() {
+    require.async('ringcross/1.js', function() {
+        var mod = require('ringcross/1.js');
+        equal(mod.test(), 100+200+300, 'right');
+        start();
+    });
+});
+
+asyncTest("重复依赖", function() {
+    require.async('repeat/1.js', function() {
+        ok(1, 'repeat/1.js loaded');
+
+        setTimeout(function() {
+            require.async('repeat/1.js', function() {
+                ok(1, 'repeat/1.js loaded');
+                start();
+            });
+        }, 20);
+    });
+});
+
+asyncTest("async多个模块", function() {
+    require.async(['asyncmore/1.js', 'asyncmore/2.js', 'asyncmore/3.js'], function(m1, m2, m3) {
+        equal(m1.test() + m2.test() + m3.test(), 1+2+3, 'right');
+        start();
+    });
+});
+
+asyncTest("async里async", function() {
+    require.async('async_in_async/first.js', function(mod) {
+        mod.load(function() {
+            ok('right');
+            start();
+        })
+    });
+});
+</script>
+
+
+<script>
+module("同步");
+define('module0', function(require, exports, module) {
+    exports.name = 'module0';
+    exports.add = function(x, y) {
+        return x + y;
+    }
+});
+
+define('module1', {
+    name : 'module1',
+    id : 0
+});
+
+define('module2-0', function(require, exports, module) {
+    exports.name = 'module2-0';
+    var module = require('module2-1');
+    exports.value = module.value;
+
+});
+
+define('module2-1', function(require, exports, module) {
+    var module = require('module2-2');
+    exports.value = module.value;
+
+});
+
+define('module2-2', function(require, exports, module) {
+    var module = require('module2-0');
+    exports.value = module.name;
+
+});
+
+define('module3', function(require, exports, module) {
+    return {
+        name : 'module3',
+        add : function(x, y) {
+            return x + y;
+        }
+    }
+});
+
+define('module4', function(require, exports, module) {
+    module.exports =  {
+        name : 'module4',
+        add : function(x, y) {
+            return x + y;
+        }
+    }
+});
+
+define('module5', function(require, exports, module) {
+    exports.val = (typeof exports.val === 'undefined') ? 0 : exports.val + 1;
+});
+
+define('module6', function(require, exports, module) {
+    define('module6_1', function(require, exports, module) {
+        exports.say = function() {
+            return 123;
+        };
+    });
+});
+
+define('User', function(require, exports, module) {
+    function User(age) {
+        this.age = age;
+    }
+
+    User.prototype.showAge = function() {
+        return this.age;
+    };
+
+    module.exports = User;
+});
+
+
+
+
+test('简单的模块定义和调用', function() {
+    var module = require('module0');
+    equal(module.name, 'module0', '模块属性正确');
+    equal(module.add(1,2), 3, '模块方法正确');
+});
+
+test('键值对的模块定义和调用', function() {
+    var module = require('module1');
+    equal(module.name, 'module1', '模块属性正确');
+    equal(module.id, 0, '模块属性正确');
+});
+
+test('具有循环依赖的模块调用', function() {
+    var module = require('module2-0');
+    equal(module.value, 'module2-0', '模块属性正确');
+});
+
+test('通过return的方式返回exports', function() {
+    var module = require('module3');
+    equal(module.name, 'module3', '模块属性正确');
+    equal(module.add(1,2), 3, '模块方法正确');
+});
+
+test('将module.exports指向新的引用', function() {
+    var module = require('module4');
+    equal(module.name, 'module4', '模块属性正确');
+    equal(module.add(1,2), 3, '模块方法正确');
+
+    var module_ = require('module4');
+    equal(module_.name, 'module4', '模块属性正确');
+    equal(module_.add(3,4), 7, '模块方法正确');
+});
+
+test('模块缓存测试', function() {
+    var m1 = require('module5');
+    equal(m1.val, 0, '第一次初始化正确');
+
+    var m2 = require('module5');
+    equal(m2.val, 0, '模块缓存正确');
+});
+
+test('define里define', function() {
+    var m1 = require('module6');
+    var m2 = require('module6_1');
+    equal(m2.say(), 123, 'define正确');
+});
+
+test('类模块测试', function() {
+    var USER_CLASS = require('User');
+    var user = new USER_CLASS(20);
+    equal(user.showAge(), 20, '正确');
+});
+
+test('不存在模块测试', function() {
+    try {
+       var m1 = require('module_xxx');
+    }
+    catch(e) {
+        ok(1, e.message);
+    }
+});
+</script>
+</body>
+</html>
