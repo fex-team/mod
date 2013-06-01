@@ -1,7 +1,7 @@
 var require, define;
 
-(function() {
-    var head = document.getElementsByTagName('head')[0];
+(function(self) {
+    var head = document.getElementsByTagName('head')[0],
         resourceMap = {},
         loadingMap = {},
         factoryMap = {},
@@ -96,7 +96,7 @@ var require, define;
                 for(i = names.length - 1; i >= 0; --i) {
                     args[i] = require(names[i]);
                 }
-                callback.apply(this, args);
+                callback.apply(self, args);
             }
         }
         
@@ -125,4 +125,4 @@ var require, define;
         'version': '1.0.0'
     };
 
-})();
+})(this);

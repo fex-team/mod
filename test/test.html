@@ -150,6 +150,17 @@ asyncTest("async里async", function() {
         })
     });
 });
+
+asyncTest("同个模块大量async", function() {
+    for(var i = 0; i < 1000; i++) {
+        require.async('manyasync/1.js', function(mod) {
+            if (++mod.tick == 1000) {
+                ok('right');
+                start();
+            }
+        });
+    }
+});
 </script>
 
 
