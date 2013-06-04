@@ -10,7 +10,7 @@ var require, define;
 
     function loadScript(id, callback) {
         var res = resourceMap[id] || {};
-        
+
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = res['url'] || id;
@@ -70,6 +70,10 @@ var require, define;
             names = [names];
         }
         
+        for(var i = names.length - 1; i >= 0; --i) {
+            names[i] = require.alias(names[i]);
+        }
+
         var needMap = {};
         var needNum = 0;
 
