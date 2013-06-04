@@ -9,9 +9,11 @@ var require, define;
 
 
     function loadScript(id, callback) {
+        var res = resourceMap[id];
+
         var script = document.createElement('script');
         script.type = 'text/javascript';
-        script.src = id;
+        script.src = res['url'] || id;
         head.appendChild(script);
 
         var queue = loadingMap[id] || (loadingMap[id] = []);
@@ -31,6 +33,8 @@ var require, define;
     };
 
     require = function(id) {
+        id = require.alias(id);
+
         var mod = modulesMap[id];
         if (mod) {
             return mod['exports'];
@@ -119,6 +123,8 @@ var require, define;
             //...
         }
     };
+
+    require.alias = function(id) {return id};
 
     define.amd = {
         'jQuery': true,
