@@ -9,8 +9,8 @@ var require, define;
 
 
     function loadScript(id, callback) {
-        var res = resourceMap[id];
-
+        var res = resourceMap[id] || {};
+        
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = res['url'] || id;
