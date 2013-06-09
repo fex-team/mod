@@ -37,7 +37,7 @@ var require, define;
 
         var mod = modulesMap[id];
         if (mod) {
-            return mod['exports'];
+            return mod.exports;
         }
 
         //
@@ -45,28 +45,28 @@ var require, define;
         //
         var factory = factoryMap[id];
         if (!factory) {
-            throw new Error('Cannot find module `' + id + '`');
+            throw Error('Cannot find module `' + id + '`');
         }
 
         mod = modulesMap[id] = {
-            'exports': {}
+            exports: {}
         };
 
         //
         // factory: function OR value
         //
-        var ret = (typeof factory === 'function')
-                ? factory.apply(mod, [require, mod['exports'], mod])
+        var ret = (typeof factory == 'function')
+                ? factory.apply(mod, [require, mod.exports, mod])
                 : factory;
 
         if (ret) {
-            mod['exports'] = ret;
+            mod.exports = ret;
         }
-        return mod['exports'];
+        return mod.exports;
     };
 
     require.async = function(names, callback) {
-        if (typeof names === 'string') {
+        if (typeof names == 'string') {
             names = [names];
         }
         
@@ -99,12 +99,14 @@ var require, define;
         }
 
         function updateNeed() {
-            if (0 === needNum--) {
+            if (0 == needNum--) {
                 var i, args = [];
                 for(i = names.length - 1; i >= 0; --i) {
                     args[i] = require(names[i]);
                 }
-                callback.apply(self, args);
+                if (typeof callback == 'function') {
+                    callback.apply(self, args);
+                }
             }
         }
         
