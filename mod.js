@@ -25,7 +25,7 @@ var require, define;
             queue = loadingMap[id] = [];
             var script = document.createElement('script');
             script.type = 'text/javascript';
-console.log(        script.src = url);
+            script.src = url;
             head.appendChild(script);
         }
         queue.push(callback);
