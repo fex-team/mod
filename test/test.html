@@ -49,9 +49,6 @@ require.resourceMap({
         'self/1.js': {
             deps:  ['self/1.js']
         },
-        'self/1.js': {
-            deps:  ['self/1.js']
-        },
         'ringcross/1.js': {
             deps:  ['ringcross/1.js', 'ringcross/2.js', 'ringcross/3.js']
         },
@@ -66,7 +63,14 @@ require.resourceMap({
         },
         'async_in_async/first.js': {
             deps:  ['async_in_async/second.js']
+        },
+        'pkg_part1': {
+            pkg: 'pkgA',
+            deps: []
         }
+    },
+    pkg: {
+        'pkgA': {url: 'pkg/all.js'}
     }
 });
 
@@ -161,8 +165,14 @@ asyncTest("同个模块大量async", function() {
         });
     }
 });
-</script>
 
+asyncTest("包测试", function() {
+    require.async('pkg_part1', function(mod) {
+        equal(mod.sayHello(), 'hello', '正确');
+        start();
+    });
+});
+</script>
 
 <script>
 module("同步");
