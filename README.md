@@ -45,6 +45,6 @@ modJS是一套的前端模块加载解决方案。与传统的模块加载相比
 
 ## 相关项目
 
-自动化框架：[fis](https://github.com/fouber/fis)
+自动化框架：[fis](https://github.com/fis-dev/fis-postprocessor-jswrapper)
 
 自动添加define插件：[fis-modular-reqlang](https://github.com/fouber/fis-modular-reqlang)
