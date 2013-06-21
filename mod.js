@@ -1,3 +1,9 @@
+/**
+ * file: mod.js
+ * ver: 1.0.0
+ * auth: zhangjiachen@baidu.com
+ * update: 16:30 2013/6/21
+ */
 var require, define;
 
 (function(self) {
