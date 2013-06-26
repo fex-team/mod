@@ -21,7 +21,7 @@ var require, define;
                     ? pkgMap[res.pkg].url
                     : (res.url || id);
 
-        if (scriptsMap[url]) {
+        if (url in scriptsMap) {
             return;
         }
         scriptsMap[url] = true;
@@ -107,7 +107,7 @@ var require, define;
                 loadScript(dep, updateNeed);
 
                 var child = resMap[dep];
-                if (child && child.deps) {
+                if (child && 'deps' in child) {
                     findNeed(child.deps);
                 }
             }
