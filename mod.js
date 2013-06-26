@@ -1,6 +1,6 @@
 /**
  * file: mod.js
- * ver: 1.0.0
+ * ver: 1.0.2
  * auth: zhangjiachen@baidu.com
  * update: 16:30 2013/6/21
  */
@@ -11,30 +11,28 @@ var require, define;
         loadingMap = {},
         factoryMap = {},
         modulesMap = {},
+        scriptsMap = {},
         resMap, pkgMap;
 
 
     function loadScript(id, callback) {
         var res = resMap[id] || {};
-        var url;
+        var url = res.pkg
+                    ? pkgMap[res.pkg].url
+                    : (res.url || id);
 
-        var pkgID = res['pkg'];
-        if (pkgID) {
-            url = pkgMap[pkgID]['url'];
+        if (scriptsMap[url]) {
+            return;
         }
-        else {
-            url = res['url'] || id;
-        }
+        scriptsMap[url] = true;
 
-        var queue = loadingMap[id];
-        if (!queue) {
-            queue = loadingMap[id] = [];
-            var script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = url;
-            head.appendChild(script);
-        }
+        var queue = loadingMap[id] || (loadingMap[id] = []);
         queue.push(callback);
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        head.appendChild(script);
     }
 
     define = function(id, factory) {
@@ -54,7 +52,7 @@ var require, define;
 
         var mod = modulesMap[id];
         if (mod) {
-            return mod['exports'];
+            return mod.exports;
         }
 
         //
@@ -73,13 +71,13 @@ var require, define;
         // factory: function OR value
         //
         var ret = (typeof factory == 'function')
-                ? factory.apply(mod, [require, mod['exports'], mod])
+                ? factory.apply(mod, [require, mod.exports, mod])
                 : factory;
 
         if (ret) {
-            mod['exports'] = ret;
+            mod.exports = ret;
         }
-        return mod['exports'];
+        return mod.exports;
     };
 
     require.async = function(names, callback) {
@@ -109,8 +107,8 @@ var require, define;
                 loadScript(dep, updateNeed);
 
                 var child = resMap[dep];
-                if (child && 'deps' in child) {
-                    findNeed(child['deps']);
+                if (child && child.deps) {
+                    findNeed(child.deps);
                 }
             }
         }
