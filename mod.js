@@ -109,8 +109,8 @@ var require, define;
                 loadScript(dep, updateNeed);
 
                 var child = resMap[dep];
-                if (child) {
-                    findNeed(child.deps);
+                if (child && 'deps' in child) {
+                    findNeed(child['deps']);
                 }
             }
         }
