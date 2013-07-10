@@ -1,8 +1,8 @@
 /**
  * file: mod.js
- * ver: 1.0.2
+ * ver: 1.0.3
  * auth: zhangjiachen@baidu.com
- * update: 16:30 2013/6/21
+ * update: 11:48 2013/7/10
  */
 var require, define;
 
@@ -16,23 +16,25 @@ var require, define;
 
 
     function loadScript(id, callback) {
+        var queue = loadingMap[id] || (loadingMap[id] = []);
+        queue.push(callback);
+
+        //
+        // load this script
+        //
         var res = resMap[id] || {};
         var url = res.pkg
                     ? pkgMap[res.pkg].url
                     : (res.url || id);
 
-        if (url in scriptsMap) {
-            return;
+        if (! (url in scriptsMap))  {
+            scriptsMap[url] = true;
+
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+            head.appendChild(script);
         }
-        scriptsMap[url] = true;
-
-        var queue = loadingMap[id] || (loadingMap[id] = []);
-        queue.push(callback);
-
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        head.appendChild(script);
     }
 
     define = function(id, factory) {
