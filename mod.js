@@ -117,8 +117,8 @@ var require, define;
 
         function updateNeed() {
             if (0 == needNum--) {
-                var i, args = [];
-                for(i = names.length - 1; i >= 0; --i) {
+                var i, n, args = [];
+                for(i = 0, n = names.length; i < n; ++i) {
                     args[i] = require(names[i]);
                 }
                 callback && callback.apply(self, args);
