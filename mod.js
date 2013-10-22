@@ -1,8 +1,7 @@
 /**
  * file: mod.js
- * ver: 1.0.3
- * auth: zhangjiachen@baidu.com
- * update: 11:48 2013/7/10
+ * ver: 1.0.5
+ * update: 2013/10/21
  */
 var require, define;
 
@@ -12,28 +11,44 @@ var require, define;
         factoryMap = {},
         modulesMap = {},
         scriptsMap = {},
-        resMap, pkgMap;
+        resMap = {},
+        pkgMap = {};
 
 
-    function loadScript(id, callback) {
+
+    function createScript(url) {
+        if (url in scriptsMap) return;
+        scriptsMap[url] = true;
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        head.appendChild(script);
+        return script;
+    }
+
+    function loadScript(id, callback, onerror) {
         var queue = loadingMap[id] || (loadingMap[id] = []);
         queue.push(callback);
 
         //
-        // load this script
+        // resource map query
         //
         var res = resMap[id] || {};
-        var url = res.pkg
-                    ? pkgMap[res.pkg].url
-                    : (res.url || id);
+        var pkg = res.pkg;
+        var url;
 
-        if (! (url in scriptsMap))  {
-            scriptsMap[url] = true;
+        if (pkg) {
+            url = pkgMap[pkg].url;
+        } else {
+            url = res.url || id;
+        }
 
-            var script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = url;
-            head.appendChild(script);
+        var el = createScript(url);
+        if (onerror) {
+            el.onerror = function() {
+                onerror(id);
+            };
         }
     }
 
@@ -66,7 +81,7 @@ var require, define;
         }
 
         mod = modulesMap[id] = {
-            'exports': {}
+            exports: {}
         };
 
         //
@@ -82,7 +97,7 @@ var require, define;
         return mod.exports;
     };
 
-    require.async = function(names, callback) {
+    require.async = function(names, onload, onerror) {
         if (typeof names == 'string') {
             names = [names];
         }
@@ -106,7 +121,7 @@ var require, define;
 
                 needMap[dep] = true;
                 needNum++;
-                loadScript(dep, updateNeed);
+                loadScript(dep, updateNeed, onerror);
 
                 var child = resMap[dep];
                 if (child && 'deps' in child) {
@@ -121,7 +136,7 @@ var require, define;
                 for(i = 0, n = names.length; i < n; ++i) {
                     args[i] = require(names[i]);
                 }
-                callback && callback.apply(self, args);
+                onload && onload.apply(self, args);
             }
         }
         
@@ -130,8 +145,26 @@ var require, define;
     };
 
     require.resourceMap = function(obj) {
-        resMap = obj['res'] || {};
-        pkgMap = obj['pkg'] || {};
+        var k, col;
+
+        // merge `res` & `pkg` fields
+        col = obj.res;
+        for(k in col) {
+            if (col.hasOwnProperty(k)) {
+                resMap[k] = col[k];
+            }
+        }
+
+        col = obj.pkg;
+        for(k in col) {
+            if (col.hasOwnProperty(k)) {
+                pkgMap[k] = col[k];
+            }
+        }
+    };
+
+    require.preload = function(url) {
+        createScript(url);
     };
 
     require.alias = function(id) {return id};

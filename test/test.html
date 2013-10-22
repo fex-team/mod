@@ -172,6 +172,13 @@ asyncTest("包测试", function() {
         start();
     });
 });
+
+asyncTest("onerror测试", function() {
+    require.async('unexisted_js', function(mod) {}, function() {
+        ok(1, 'onerror occurred');
+        start();
+    });
+});
 </script>
 
 <script>
@@ -313,6 +320,9 @@ test('不存在模块测试', function() {
         ok(1, e.message);
     }
 });
+
+
+require.preload('hello.js');
 </script>
 </body>
 </html>
