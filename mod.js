@@ -16,11 +16,14 @@ var require, define;
 
 
 
-    function createScript(url) {
+    function createScript(url, onerror) {
         if (url in scriptsMap) return;
         scriptsMap[url] = true;
 
         var script = document.createElement('script');
+        if (onerror) {
+            script.onerror = onerror;
+        }
         script.type = 'text/javascript';
         script.src = url;
         head.appendChild(script);
@@ -44,12 +47,9 @@ var require, define;
             url = res.url || id;
         }
 
-        var el = createScript(url);
-        if (onerror) {
-            el.onerror = function() {
-                onerror(id);
-            };
-        }
+        createScript(url, function() {
+            onerror(id);
+        });
     }
 
     define = function(id, factory) {
