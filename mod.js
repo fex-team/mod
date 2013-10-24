@@ -181,7 +181,13 @@ var require, define;
     require.loadCss = function(cfg) {
         if (cfg.content) {
             var sty = document.createElement('style');
-            sty.innerHTML = cfg.content;
+            sty.type = 'text/css';
+            
+            if (sty.styleSheet) {       // IE
+                sty.styleSheet.cssText = cfg.content;
+            } else {
+                sty.innerHTML = cfg.content;
+            }
             head.appendChild(sty);
         }
         else if (cfg.url) {
