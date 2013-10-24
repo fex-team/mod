@@ -22,7 +22,18 @@ var require, define;
 
         var script = document.createElement('script');
         if (onerror) {
-            script.onerror = onerror;
+            var tid = setTimeout(onerror, require.timeout);
+
+            script.onerror = function() {
+                clearTimeout(tid);
+                onerror();
+            };
+
+            script.onreadystatechange = function() {
+                if (this.readyState == 'complete') {
+                    clearTimeout(tid);
+                }
+            }
         }
         script.type = 'text/javascript';
         script.src = url;
@@ -47,7 +58,7 @@ var require, define;
             url = res.url || id;
         }
 
-        createScript(url, function() {
+        createScript(url, onerror && function() {
             onerror(id);
         });
     }
@@ -163,11 +174,29 @@ var require, define;
         }
     };
 
-    require.preload = function(url) {
+    require.loadJs = function(url) {
         createScript(url);
     };
 
+    require.loadCss = function(cfg) {
+        if (cfg.content) {
+            var sty = document.createElement('style');
+            sty.innerHTML = cfg.content;
+            head.appendChild(sty);
+        }
+        else if (cfg.url) {
+            var link = document.createElement('link');
+            link.href = cfg.url;
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            head.appendChild(link);
+        }
+    };
+
+
     require.alias = function(id) {return id};
+
+    require.timeout = 5000;
 
     define.amd = {
         'jQuery': true,

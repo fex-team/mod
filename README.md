@@ -30,15 +30,19 @@ modJS是一套的前端模块加载解决方案。与传统的模块加载相比
 
 * 考虑到有些模块无需在启动时载入，因此modJS提供了可以在运行时异步加载模块的接口：
 
- **require.async** (names, callback)
+ **require.async** (names, onload, onerror)
 
  names可以是一个模块名，或者是数组形式的模块名列表。
 
- 当所有都加载都完成时，callback被调用，names对应的模块实例将依次传入。
+ 当所有都加载都完成时，onload被调用，names对应的所有模块实例将作为参数传入。
+
+ 如果加载发生错误，或者网络超时，onerror将被触发。
+
+ 超时时间可以通过require.timeout设置。默认为5000(ms)。
 
   使用require.async获取的模块不会被发布工具安排在预加载中，因此在完成回调之前require将会抛出模块未定义错误。
 
-
+  
 
 
 
