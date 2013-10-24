@@ -36,14 +36,14 @@ modJS是一套的前端模块加载解决方案。与传统的模块加载相比
 
  当所有都加载都完成时，onload被调用，names对应的所有模块实例将作为参数传入。
 
- 如果加载发生错误，或者网络超时，onerror将被触发。
+ 如果加载错误或者网络超时，onerror将被触发。
 
- 超时时间可以通过require.timeout设置。默认为5000(ms)。
+ 超时时间可以通过require.timeout设置，默认为5000(ms)。
 
   使用require.async获取的模块不会被发布工具安排在预加载中，因此在完成回调之前require将会抛出模块未定义错误。
 
 
- **require.loadJS** (url)
+ **require.loadJs** (url)
 
  异步加载脚本文件，不做任何回调
 
