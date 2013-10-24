@@ -42,8 +42,18 @@ modJS是一套的前端模块加载解决方案。与传统的模块加载相比
 
   使用require.async获取的模块不会被发布工具安排在预加载中，因此在完成回调之前require将会抛出模块未定义错误。
 
-  
 
+ **require.loadJS** (url)
+
+ 异步加载脚本文件，不做任何回调
+
+ **require.loadCss** ({url: cssfile})
+
+ 异步加载CSS文件，并添加到页面
+
+ **require.loadCss** ({content: csstext})
+
+ 创建一个样式列表并将css内容写入
 
 
 
