@@ -1,11 +1,13 @@
 /**
  * file: mod.js
- * ver: 1.0.5
- * update: 2013/10/21
+ * ver: 1.0.6
+ * update: 2014/1/15
+ *
+ * https://github.com/zjcqoo/mod
  */
 var require, define;
 
-(function(self) {
+(function(global) {
     var head = document.getElementsByTagName('head')[0],
         loadingMap = {},
         factoryMap = {},
@@ -68,7 +70,7 @@ var require, define;
 
         var queue = loadingMap[id];
         if (queue) {
-            for(var i = queue.length - 1; i >= 0; --i) {
+            for(var i = 0, n = queue.length; i < n; i++) {
                 queue[i]();
             }
             delete loadingMap[id];
@@ -88,7 +90,7 @@ var require, define;
         //
         var factory = factoryMap[id];
         if (!factory) {
-            throw Error('Cannot find module `' + id + '`');
+            throw '[ModJS] Cannot find module `' + id + '`';
         }
 
         mod = modulesMap[id] = {
@@ -113,15 +115,15 @@ var require, define;
             names = [names];
         }
         
-        for(var i = names.length - 1; i >= 0; --i) {
+        for(var i = 0, n = names.length; i < n; i++) {
             names[i] = require.alias(names[i]);
         }
 
         var needMap = {};
-        var needNum = 0;
+        var needNum = 1;
 
         function findNeed(depArr) {
-            for(var i = depArr.length - 1; i >= 0; --i) {
+            for(var i = 0, n = depArr.length; i < n; i++) {
                 //
                 // skip loading or loaded
                 //
@@ -142,12 +144,13 @@ var require, define;
         }
 
         function updateNeed() {
-            if (0 == needNum--) {
-                var i, n, args = [];
-                for(i = 0, n = names.length; i < n; ++i) {
+            if (--needNum == 0) {
+                var args = [];
+                for(var i = 0, n = names.length; i < n; i++) {
                     args[i] = require(names[i]);
                 }
-                onload && onload.apply(self, args);
+
+                onload && onload.apply(global, args);
             }
         }
         
