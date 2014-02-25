@@ -120,7 +120,7 @@ var require, define;
         }
 
         var needMap = {};
-        var needNum = 1;
+        var needNum = 0;
 
         function findNeed(depArr) {
             for(var i = 0, n = depArr.length; i < n; i++) {
@@ -128,6 +128,12 @@ var require, define;
                 // skip loading or loaded
                 //
                 var dep = depArr[i];
+
+                var child = resMap[dep];
+                if (child && 'deps' in child) {
+                    findNeed(child.deps);
+                }
+                
                 if (dep in factoryMap || dep in needMap) {
                     continue;
                 }
@@ -135,16 +141,11 @@ var require, define;
                 needMap[dep] = true;
                 needNum++;
                 loadScript(dep, updateNeed, onerror);
-
-                var child = resMap[dep];
-                if (child && 'deps' in child) {
-                    findNeed(child.deps);
-                }
             }
         }
 
         function updateNeed() {
-            if (--needNum == 0) {
+            if (0 == needNum--) {
                 var args = [];
                 for(var i = 0, n = names.length; i < n; i++) {
                     args[i] = require(names[i]);
