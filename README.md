@@ -12,7 +12,9 @@ modJS是一套的前端模块加载解决方案。与传统的模块加载相比
 
 **模块的定义**
 
-* modJS完全遵循AMD规范。使用define来定义一个模块：
+* modJS是一个精简版的AMD/CMD规范，并不完全遵守AMD/CMD规范，目的在于希望给使用者提供一个类似nodeJS一样的开发体验，同时具备很好的线上性能。
+
+使用define来定义一个模块：
 
   **define** (id, factory)
 
