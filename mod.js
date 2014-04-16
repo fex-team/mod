@@ -31,20 +31,20 @@ var require, define;
                 onerror();
             };
 
-			function onload() {
+            function onload() {
                 clearTimeout(tid);
-			}
-
-			if ('onload' in script) {
-				script.onload = onload;
             }
-			else {
-		        script.onreadystatechange = function() {
-					if (this.readyState == 'loaded' || this.readyState == 'complete') {
-						onload();
-		            }
-		        }
-			}
+
+            if ('onload' in script) {
+                script.onload = onload;
+            }
+            else {
+                script.onreadystatechange = function() {
+                    if (this.readyState == 'loaded' || this.readyState == 'complete') {
+                        onload();
+                    }
+                }
+            }
         }
         script.type = 'text/javascript';
         script.src = url;
