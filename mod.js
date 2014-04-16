@@ -1,7 +1,7 @@
 /**
  * file: mod.js
- * ver: 1.0.6
- * update: 2014/1/15
+ * ver: 1.0.7
+ * update: 2014/4/14
  *
  * https://github.com/zjcqoo/mod
  */
@@ -31,11 +31,20 @@ var require, define;
                 onerror();
             };
 
-            script.onreadystatechange = function() {
-                if (this.readyState == 'complete') {
-                    clearTimeout(tid);
-                }
+			function onload() {
+                clearTimeout(tid);
+			}
+
+			if ('onload' in script) {
+				script.onload = onload;
             }
+			else {
+		        script.onreadystatechange = function() {
+					if (this.readyState == 'loaded' || this.readyState == 'complete') {
+						onload();
+		            }
+		        }
+			}
         }
         script.type = 'text/javascript';
         script.src = url;
@@ -128,12 +137,6 @@ var require, define;
                 // skip loading or loaded
                 //
                 var dep = depArr[i];
-
-                var child = resMap[dep];
-                if (child && 'deps' in child) {
-                    findNeed(child.deps);
-                }
-                
                 if (dep in factoryMap || dep in needMap) {
                     continue;
                 }
@@ -141,6 +144,11 @@ var require, define;
                 needMap[dep] = true;
                 needNum++;
                 loadScript(dep, updateNeed, onerror);
+
+                var child = resMap[dep];
+                if (child && 'deps' in child) {
+                    findNeed(child.deps);
+                }
             }
         }
 
@@ -207,5 +215,10 @@ var require, define;
     require.alias = function(id) {return id};
 
     require.timeout = 5000;
+
+    define.amd = {
+        'jQuery': true,
+        'version': '1.0.0'
+    };
 
 })(this);
