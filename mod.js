@@ -215,10 +215,5 @@ var require, define;
     require.alias = function(id) {return id};
 
     require.timeout = 5000;
-
-    define.amd = {
-        'jQuery': true,
-        'version': '1.0.0'
-    };
-
+    
 })(this);
