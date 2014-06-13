@@ -61,6 +61,6 @@ modJS只实现了AMD的一个子集，如果需要使用完整兼容AMD规范的
 
 ## 相关项目
 
-自动化框架：[fis](https://github.com/fis-dev/fis-postprocessor-jswrapper)
+自动化框架：[fis](https://github.com/fex-team/fis)
 
-自动添加define插件：[fis-modular-reqlang](https://github.com/fouber/fis-modular-reqlang)
+自动添加define插件：[fis-postprocessor-jswrapper](https://github.com/fex-team/fis-postprocessor-jswrapper)
