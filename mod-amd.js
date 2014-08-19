@@ -27,7 +27,7 @@ var requirejs, require, define;
         },
 
         exports: function (name) {
-            return hasOwn(defined, name) ? defined[ name ] : (defined[name] = {});
+            return hasProp(defined, name) ? defined[ name ] : (defined[name] = {});
         },
 
         module: function (name) {
@@ -162,6 +162,8 @@ var requirejs, require, define;
             finalize, i, len, cjsModule, depName;
 
         if (callbackType === 'undefined' || callbackType === 'function') {
+            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            
             for (i=0, len = deps.length; i < len; i++) {
                 depName = deps[i];
 
