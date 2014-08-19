@@ -2,7 +2,7 @@
  * 针对 fis 量身定做。
  * 由于编译期会处理并优化一些事情，所以此 amd loader 不需要考虑所有的用法。
  */
-var requirejs, require, define;
+var require, define;
 (function(undef) {
   var defined = {},
       waiting = {},
