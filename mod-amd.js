@@ -44,21 +44,22 @@ var require, define;
 
     function callDep(name, callback) {
         if (hasProp(waiting, name)) {
-            var args = waiting[name],
-                origin;
+            var args = waiting[name];
 
             delete waiting[name];
             defining[name] = true;
 
             if (callback) {
-                origin = args[2];
-                args[2] = function(require) {
-                    var ret = typeof origin === 'function' ?
-                        origin.apply(this, arguments) : origin;
-                    setTimeout(callback, 4);
-                    origin = null;
-                    return ret;
-                };
+                args[2] = (function(old, fn) {
+
+                    return function(require) {
+                        var ret = typeof old === 'function' ? old.apply(this, arguments) : old;
+
+                        // 要等 return ret 后 defined 里面才有数据。
+                        setTimeout(fn, 4);
+                        return ret;
+                    };
+                })(args[2], callback);
 
                 return main.apply(undef, args);
             }
@@ -69,22 +70,8 @@ var require, define;
         if (!hasProp(defined, name) && !hasProp(defining, name)) {
             throw new Error('No ' + name);
         }
+
         return callback ? callback() : defined[name];
-    }
-
-    function makeFinalize(name, callback, cjsModule, usingExports) {
-        return function(args) {
-            var ret = callback ? callback.apply(defined[name], args) : undefined;
-
-            if (name) {
-                if (cjsModule && cjsModule.exports !== undef &&
-                    cjsModule.exports !== defined[name]) {
-                    defined[name] = cjsModule.exports;
-                } else if (ret !== undef || !usingExports) {
-                    defined[name] = ret;
-                }
-            }
-        };
     }
 
     function resolve(name) {
@@ -98,94 +85,93 @@ var require, define;
         var script = document.createElement('script'),
             loaded = false,
 
-            wrap = function() {
-                if (loaded) {
-                    return;
-                }
+            clean = function() {
                 clearTimeout(timer);
-                loaded = true;
-                cb && cb();
+                script.onload = script.onreadystatechange = script.onerror = null;
+                head.removeChild(script);
+            },
+
+            wrap = function() {
+                if (!loaded && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
+                    loaded = true;
+                    clean();
+                    cb();
+                }
             },
 
             onerror = function() {
-                clearTimeout(timer);
-                cb && cb(true);
+                clean();
+                throw new Error('Can\'t load ' + url);
             },
 
             timer;
 
         script.setAttribute('src', url);
         script.setAttribute('type', 'text/javascript');
-        script.onload = wrap;
-        script.onreadystatechange = wrap;
+        script.onload = script.onreadystatechange = wrap;
         script.onerror = onerror;
         head.appendChild(script);
         timer = setTimeout(onerror, timeout);
-    }
-
-    function loadDeps(deps, args, callback) {
-        var i = deps.length,
-            next = function() {
-                callback(args);
-            };
-
-        while (i--) {
-            next = (function(next, depName) {
-                return function() {
-                    var path = resolve(depName);
-
-                    loadJs(path, function(error) {
-                        var idx;
-
-                        if (error) {
-                            throw new Error('Can\'t load ' + path);
-                        }
-
-                        idx = args.indexOf(depName);
-                        callDep(depName, function() {
-                            args.splice(idx, 1, callDep(depName));
-                            next();
-                        });
-                    });
-                }
-            })(next, deps[i]);
-        }
-
-        next();
     }
 
     function main(name, deps, callback) {
         var callbackType = typeof callback,
             args = [],
             usingExports = false,
-            loading = [],
-            finalize, i, len, cjsModule, depName;
+            i = deps.length,
+            next, len, cjsModule, depName;
 
         if (callbackType === 'undefined' || callbackType === 'function') {
             deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
 
-            for (i = 0, len = deps.length; i < len; i++) {
-                depName = deps[i];
+            next = function() {
+                var ret = callback ? callback.apply(defined[name], args) : undefined;
 
-                if (depName === "require") {
-                    args[i] = handlers.require(name);
-                } else if (depName === "exports") {
-                    args[i] = handlers.exports(name);
-                    usingExports = true;
-                } else if (depName === "module") {
-                    cjsModule = args[i] = handlers.module(name);
-                } else if (hasProp(defined, depName) ||
-                    hasProp(waiting, depName) ||
-                    hasProp(defining, depName)) {
-                    args[i] = callDep(depName);
-                } else {
-                    args[i] = depName;
-                    loading.push(depName);
+                if (name) {
+                    if (cjsModule && cjsModule.exports !== undef &&
+                        cjsModule.exports !== defined[name]) {
+                        defined[name] = cjsModule.exports;
+                    } else if (ret !== undef || !usingExports) {
+                        defined[name] = ret;
+                    }
                 }
-            }
+            };
 
-            finalize = makeFinalize(name, callback, cjsModule, usingExports);
-            loading.length ? loadDeps(loading, args, finalize) : finalize(args);
+            while (i--) {
+                next = (function(next, depName, i) {
+                    return function() {
+                        var path;
+
+                        if (depName === "require") {
+                            args[i] = handlers.require(name);
+                        } else if (depName === "exports") {
+                            args[i] = handlers.exports(name);
+                            usingExports = true;
+                        } else if (depName === "module") {
+                            cjsModule = args[i] = handlers.module(name);
+                        } else if (hasProp(defined, depName) ||
+                            hasProp(waiting, depName) ||
+                            hasProp(defining, depName)) {
+
+                            return callDep(depName, function() {
+                                args[i] = callDep(depName);
+                                next();
+                            });
+                        } else {
+                            path = resolve(depName);
+
+                            return loadJs(path, function() {
+                                callDep(depName, function() {
+                                    args[i] = callDep(depName);
+                                    next();
+                                });
+                            });
+                        }
+                        next();
+                    }
+                })(next, deps[i], i);
+            }
+            next();
         } else if (name) {
             defined[name] = callback;
         }
