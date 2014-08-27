@@ -122,7 +122,7 @@ var require, define;
             next, len, cjsModule, depName;
 
         if (callbackType === 'undefined' || callbackType === 'function') {
-            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            deps = !deps.length && callback.length ? (i = 3, ['require', 'exports', 'module']) : deps;
 
             next = function() {
                 var ret = callback ? callback.apply(defined[name], args) : undefined;
