@@ -222,4 +222,6 @@ var require, define;
             waiting[name] = [name, deps, factory];
         }
     }
+
+    define.amd = {};
 })();
