@@ -222,9 +222,4 @@ var require, define;
             waiting[name] = [name, deps, factory];
         }
     }
-
-    // what does this mean?
-    define.amd = {
-        jQuery: true
-    };
 })();
