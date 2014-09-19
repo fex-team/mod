@@ -4,7 +4,7 @@
  */
 
 var require, define, F;
-(function(undef) {
+(function(global, undef) {
     var head = document.getElementsByTagName('head')[0],
         loadingMap = {},
         factoryMap = {},
@@ -453,4 +453,4 @@ var require, define, F;
     // expose
     F = resource.load;
     F.load = F;
-})();
+})(this);
