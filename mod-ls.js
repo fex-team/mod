@@ -435,7 +435,7 @@ var require, define, F;
 
                 css && appendStyle(css);
                 js && globalEval(js);
-                done();
+                done && done();
             };
 
             api.getChangeList(pkgs, function(data) {
