@@ -537,6 +537,7 @@ var require, define, F;
 
         return function(name, callback) {
             var map = config.ls_resourceMap;
+            var args = arguments;
 
             if (typeof name === 'string') {
                 name = [name];
@@ -548,7 +549,7 @@ var require, define, F;
             });
 
             resource.load(data, function() {
-                older(name, callback);
+                older.apply(null, args);
             });
         };
     })(require.async);
