@@ -213,9 +213,93 @@ var require, define, F;
 
     require.timeout = 5000;
 
-    // ------------------------------
+    // -----------------------------------------------------------
+    // ------------------------ 分割线 ----------------------------
     //
-    // ------------------------------
+    // 上部分：amd loader
+    // 下部分：localstorage
+    //
+    // -----------------------------------------------------------
+    // -----------------------------------------------------------
+
+    var head = document.getElementsByTagName('head')[0];
+    function globalEval(code) {
+        var script;
+
+        code = code.replace(/^\s+/, '').replace(/\s+$/, '');
+
+        if (code) {
+            if (code.indexOf('use strict') === 1) {
+                script = document.createElement('script');
+                script.text = code;
+                head.appendChild(script).parentNode.removeChild(script);
+            } else {
+                eval(code);
+            }
+        }
+    }
+
+    function appendStyle(code) {
+        var dom = document.createElement('style');
+        dom.innerHTML = code;
+        head.appendChild(dom);
+    }
+
+    function each(obj, iterator) {
+        // is array?
+        if (obj.splice) {
+            obj.forEach(iterator);
+        } else {
+            for (var key in obj) {
+                obj.hasOwnProperty(key) && iterator(obj[key], key);
+            }
+        }
+    }
+
+    function isEmpty(obj) {
+        if (obj) {
+            for (var key in obj) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function extend(a, b) {
+        var i, v;
+
+        if (!a || !b || typeof b !== 'object') {
+            return a;
+        }
+
+        each(b, function(v, i) {
+            if (typeof v === 'object' && !v.splice) {
+                extend(a[i] || (a[i] = {}), v);
+            } else {
+                a[i] = v;
+            }
+        });
+
+        return a;
+    }
+
+    function ajax(url, cb, data) {
+        var xhr = new(window.XMLHttpRequest || ActiveXObject)('Microsoft.XMLHTTP');
+
+        xhr.onreadystatechange = function() {
+            if (this.readyState == 4) {
+                cb(this.responseText);
+            }
+        };
+        xhr.open(data ? 'POST' : 'GET', url + '&t=' + ~~(Math.random() * 1e6), true);
+
+        if (data) {
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        }
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(data);
+    }
 
     var storage = (function() {
 
@@ -235,106 +319,69 @@ var require, define, F;
                 }
             };
 
-            this.save = this.clear = function() {
+            this.save = this.clear = this.init = function() {
                 // implements this.
             };
         }
 
         function LocalStorage() {
             Base.apply(this, arguments);
+            var me = this;
+            var inited = false;
 
-            var key = 'fis';
+            this.init = function() {
 
-            var str = localStorage[key];
+                // 避免重复初始化。
+                if (inited) {
+                    return;
+                }
 
-            if (str) {
-                this.set(JSON.parse(str));
+                inited = true;
+
+                var prefix = config.fid;
+
+                each(localStorage, function(val, key) {
+                    if (key.substring(0, prefix.length) === prefix) {
+                        me.set(key.substring(prefix.length), JSON.parse(val));
+                    }
+                });
             }
 
             this.save = function() {
-                localStorage[key] = JSON.stringify(this.get());
+                var obj = me.get();
+                var prefix = config.fid;
+
+                each(obj, function(val, key) {
+                    localStorage[prefix + key] = JSON.stringify(val);
+                });
             };
 
             this.clear = function() {
-                delete localStorage[key];
+                var prefix = config.fid;
+
+                each(localStorage, function(val, key) {
+                    if (key.substring(0, prefix.length) === prefix) {
+                        delete localstorage[key];
+                    }
+                });
             };
         }
 
-        function indexedDB() {
+        function IndexedDB() {
             // 待调研
         }
 
         function factory() {
-            // 根据运行时能力来实例化一个最优的方案。
+            // todo 根据运行时能力来实例化一个最优的方案。
             return new LocalStorage();
         }
 
         return factory();
     })();
 
+
     var resource = (function(storage) {
         var api = {};
-
-        function ajax(url, cb, data) {
-            var xhr = new(window.XMLHttpRequest || ActiveXObject)('Microsoft.XMLHTTP');
-
-            xhr.onreadystatechange = function() {
-                if (this.readyState == 4) {
-                    cb(this.responseText);
-                }
-            };
-            xhr.open(data ? 'POST' : 'GET', url + '&t=' + ~~(Math.random() * 1e6), true);
-
-            if (data) {
-                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            }
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            xhr.send(data);
-        }
-
-        var head = document.getElementsByTagName('head')[0];
-        function globalEval(code) {
-            var script;
-
-            code = code.replace(/^\s+/, '').replace(/\s+$/, '');
-
-            if (code) {
-                if (code.indexOf('use strict') === 1) {
-                    script = document.createElement('script');
-                    script.text = code;
-                    head.appendChild(script).parentNode.removeChild(script);
-                } else {
-                    eval(code);
-                }
-            }
-        }
-
-        function appendStyle(code) {
-            var dom = document.createElement('style');
-            dom.innerHTML = code;
-            head.appendChild(dom);
-        }
-
-        function each(obj, iterator) {
-            // is array
-            if (obj.splice) {
-                obj.forEach(iterator);
-            } else {
-                for (var key in obj) {
-                    obj.hasOwnProperty(key) && iterator(obj[key], key);
-                }
-            }
-        }
-
-        function isEmpty(obj) {
-            if (obj) {
-                for (var key in obj) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
 
         api.getChangeList = function(pkgs, done) {
             var list = [];
@@ -353,7 +400,7 @@ var require, define, F;
 
             if (list.length) {
                 // 需要进一步检测
-                ajax('/fis-diff?type=list', function(response) {
+                ajax(config.listLink, function(response) {
                     response = JSON.parse(response);
                     var data = response.data;
 
@@ -404,7 +451,7 @@ var require, define, F;
                 params.push('' + id + '=' + list.join(','));
             });
 
-            ajax('/fis-diff?type=data', function(response) {
+            ajax(config.dataLink, function(response) {
                 response = JSON.parse(response);
                 var data = response.data;
                 api.updatePkgs(data);
@@ -413,13 +460,13 @@ var require, define, F;
         };
 
         api.load = function(pkgs, done) {
-            var runjs = function() {
+            var ran = function() {
                 var js = '';
                 var css = '';
 
                 each(pkgs, function(item) {
                     var pkg = storage.get(item.id);
-                    var hashs = pkg.list;
+                    var hashs = this.list || pkg.list;
                     var content = '';
 
                     each(hashs, function(hash) {
@@ -438,11 +485,13 @@ var require, define, F;
                 done && done();
             };
 
+            storage.init();
+
             api.getChangeList(pkgs, function(data) {
                 if (!isEmpty(data)) {
-                    api.fetchPkgs(data, runjs);
+                    api.fetchPkgs(data, ran);
                 } else {
-                    runjs();
+                    ran();
                 }
             });
         }
@@ -450,7 +499,58 @@ var require, define, F;
         return api;
     })(storage);
 
+    var config = {
+        fid: 'fis-',
+        rate: 0.01,
+        listLink: '/fis-diff?type=list',
+        dataLink: '/fis-diff?type=data'
+    };
+
     // expose
     F = resource.load;
     F.load = F;
+
+    F.config = function(cfg) {
+        return extend(config, cfg);
+    };
+
+    // hack require.async
+    require.async = (function(older) {
+
+        function findDeps(name, map, data) {
+            var obj = map.res[name];
+            var key = obj.key;
+            var pkg = obj.pkg;
+
+            if (pkg) {
+                key = map.pkg[pkg].key;
+            }
+
+            var arr = data[key] || (data[key] = {id: key, hash: obj.hash});
+
+            // 因为如果有更新，不能对应上 hash 所以暂时不支持部分 require.async
+            // pkg && (arr.list || (arr.list = [])).push(obj.hash);
+
+            obj.deps && obj.deps.length && each(obj.deps, function(dep) {
+                findDeps(dep, map, data);
+            });
+        }
+
+        return function(name, callback) {
+            var map = config.ls_resourceMap;
+
+            if (typeof name === 'string') {
+                name = [name];
+            }
+
+            var data = {};
+            each(name, function(name) {
+                findDeps(name, map, data)
+            });
+
+            resource.load(data, function() {
+                older(name, callback);
+            });
+        };
+    })(require.async);
 })(this);
