@@ -528,8 +528,7 @@ var require, define, F;
 
             var arr = data[key] || (data[key] = {id: key, hash: obj.hash});
 
-            // 因为如果有更新，不能对应上 hash 所以暂时不支持部分 require.async
-            // pkg && (arr.list || (arr.list = [])).push(obj.hash);
+            pkg && (arr.list || (arr.list = [])).push(obj.hash);
 
             obj.deps && obj.deps.length && each(obj.deps, function(dep) {
                 findDeps(dep, map, data);
