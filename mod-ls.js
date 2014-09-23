@@ -347,9 +347,15 @@ var require, define, F;
                 });
             }
 
-            this.save = function() {
-                var obj = me.get();
+            this.save = function(id) {
+                var obj = me.get(id);
                 var prefix = config.fid;
+
+                if (id) {
+                    var tmp = {};
+                    tmp[id] = obj;
+                    obj = tmp;
+                }
 
                 each(obj, function(val, key) {
                     localStorage[prefix + key] = JSON.stringify(val);
@@ -419,6 +425,7 @@ var require, define, F;
 
                         if (!ret[id].length) {
                             delete ret[id];
+                            storage.save(id);
                         }
                     })
 
