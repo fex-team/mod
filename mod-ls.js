@@ -416,6 +416,10 @@ var require, define, F;
                         each(item.list, function(hash) {
                             ~oldlist.indexOf(hash) || ret[id].push(hash);
                         });
+
+                        if (!ret[id].length) {
+                            delete ret[id];
+                        }
                     })
 
                     done(ret);
