@@ -223,8 +223,5 @@ var require, define;
         }
     }
 
-    // what does this mean?
-    define.amd = {
-        jQuery: true
-    };
+    define.amd = {};
 })();
