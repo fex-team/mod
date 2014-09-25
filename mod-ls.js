@@ -358,7 +358,11 @@ var require, define, F;
                 }
 
                 each(obj, function(val, key) {
-                    localStorage[prefix + key] = JSON.stringify(val);
+                    try {
+                        localStorage[prefix + key] = JSON.stringify(val);
+                    } catch (e) {
+                        // 没存入也没关系，程序可以正常运行
+                    }
                 });
             };
 

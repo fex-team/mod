@@ -51,14 +51,14 @@ var require, define;
 
             if (callback) {
                 args[2] = (function(old, fn) {
-
-                    return function(require) {
+                    var hacked = function() {
                         var ret = typeof old === 'function' ? old.apply(this, arguments) : old;
 
                         // 要等 return ret 后 defined 里面才有数据。
                         setTimeout(fn, 4);
                         return ret;
                     };
+                    return (hacked._length = 1, hacked);
                 })(args[2], callback);
 
                 return main.apply(undef, args);
@@ -122,7 +122,7 @@ var require, define;
             next, len, cjsModule, depName;
 
         if (callbackType === 'undefined' || callbackType === 'function') {
-            deps = !deps.length && callback.length ? (i = 3, ['require', 'exports', 'module']) : deps;
+            deps = !deps.length && (callback.length||callback._length) ? (i = 3, ['require', 'exports', 'module']) : deps;
 
             next = function() {
                 var ret = callback ? callback.apply(defined[name], args) : undefined;
@@ -223,5 +223,8 @@ var require, define;
         }
     }
 
-    define.amd = {};
+    // what does this mean?
+    define.amd = {
+        jQuery: true
+    };
 })();
