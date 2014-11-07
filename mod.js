@@ -1,7 +1,7 @@
 /**
  * file: mod.js
- * ver: 1.0.7
- * update: 2014/4/14
+ * ver: 1.0.8
+ * update: 2014/11/7
  *
  * https://github.com/zjcqoo/mod
  */
@@ -137,7 +137,17 @@ var require, define;
                 // skip loading or loaded
                 //
                 var dep = depArr[i];
-                if (dep in factoryMap || dep in needMap) {
+
+                if (dep in factoryMap){
+                    // check whether loaded resource's deps is loaded or not
+                    var child = resMap[dep];
+                    if (child && 'deps' in child) {
+                        findNeed(child.deps);
+                    }
+                    continue;
+                }
+
+                if (dep in needMap) {
                     continue;
                 }
 
