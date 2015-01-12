@@ -1,9 +1,9 @@
 /**
  * file: mod.js
- * ver: 1.0.8
- * update: 2014/11/7
+ * ver: 1.0.9
+ * update: 2015/01/12
  *
- * https://github.com/zjcqoo/mod
+ * https://github.com/fex-team/mod
  */
 var require, define;
 
@@ -87,6 +87,12 @@ var require, define;
     };
 
     require = function(id) {
+
+        // compatible with require([dep, dep2...]) syntax.
+        if (id && id.splice) {
+            return require.async.apply(this, arguments);
+        }
+
         id = require.alias(id);
 
         var mod = modulesMap[id];
@@ -123,7 +129,7 @@ var require, define;
         if (typeof names == 'string') {
             names = [names];
         }
-        
+
         for(var i = 0, n = names.length; i < n; i++) {
             names[i] = require.alias(names[i]);
         }
@@ -172,7 +178,7 @@ var require, define;
                 onload && onload.apply(global, args);
             }
         }
-        
+
         findNeed(names);
         updateNeed();
     };
@@ -204,7 +210,7 @@ var require, define;
         if (cfg.content) {
             var sty = document.createElement('style');
             sty.type = 'text/css';
-            
+
             if (sty.styleSheet) {       // IE
                 sty.styleSheet.cssText = cfg.content;
             } else {
@@ -225,5 +231,5 @@ var require, define;
     require.alias = function(id) {return id};
 
     require.timeout = 5000;
-    
+
 })(this);
