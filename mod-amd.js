@@ -1,6 +1,14 @@
 /**
  * 针对 fis 量身定做。
  * 由于编译期会处理并优化一些事情，所以此 amd loader 不需要考虑所有的用法。
+ *
+ * !!! ------ 注意
+ *
+ * 初衷是要一个没有 noralize path 和 amd plugin 的 amd loader,
+ * 但是目前异步加载还存在一些bug，还是去使用 require.js 或者 esl.js
+ *
+ * 或者 pull request 一个可用的版本，谢谢。没有精力去修复了！
+ *
  */
 var require, define;
 (function(undef) {
