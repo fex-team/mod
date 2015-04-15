@@ -59,7 +59,7 @@ var require, define;
         //
         // resource map query
         //
-        var res = resMap[id] || {};
+        var res = resMap[id] || resMap[id + '.js'] || {};
         var pkg = res.pkg;
         var url;
 
