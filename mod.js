@@ -1,7 +1,7 @@
 /**
  * file: mod.js
- * ver: 1.0.9
- * update: 2015/01/12
+ * ver: 1.0.10
+ * update: 2015/04/16
  *
  * https://github.com/fex-team/mod
  */
@@ -15,8 +15,6 @@ var require, define;
         scriptsMap = {},
         resMap = {},
         pkgMap = {};
-
-
 
     function createScript(url, onerror) {
         if (url in scriptsMap) return;
@@ -37,8 +35,7 @@ var require, define;
 
             if ('onload' in script) {
                 script.onload = onload;
-            }
-            else {
+            } else {
                 script.onreadystatechange = function() {
                     if (this.readyState == 'loaded' || this.readyState == 'complete') {
                         onload();
@@ -75,11 +72,12 @@ var require, define;
     }
 
     define = function(id, factory) {
+        id = id.replace(/\.js$/i, '');
         factoryMap[id] = factory;
 
         var queue = loadingMap[id];
         if (queue) {
-            for(var i = 0, n = queue.length; i < n; i++) {
+            for (var i = 0, n = queue.length; i < n; i++) {
                 queue[i]();
             }
             delete loadingMap[id];
@@ -115,9 +113,7 @@ var require, define;
         //
         // factory: function OR value
         //
-        var ret = (typeof factory == 'function')
-                ? factory.apply(mod, [require, mod.exports, mod])
-                : factory;
+        var ret = (typeof factory == 'function') ? factory.apply(mod, [require, mod.exports, mod]) : factory;
 
         if (ret) {
             mod.exports = ret;
@@ -130,23 +126,19 @@ var require, define;
             names = [names];
         }
 
-        for(var i = 0, n = names.length; i < n; i++) {
-            names[i] = require.alias(names[i]);
-        }
-
         var needMap = {};
         var needNum = 0;
 
         function findNeed(depArr) {
-            for(var i = 0, n = depArr.length; i < n; i++) {
+            for (var i = 0, n = depArr.length; i < n; i++) {
                 //
                 // skip loading or loaded
                 //
-                var dep = depArr[i];
+                var dep = require.alias(depArr[i]);
 
-                if (dep in factoryMap){
+                if (dep in factoryMap) {
                     // check whether loaded resource's deps is loaded or not
-                    var child = resMap[dep];
+                    var child = resMap[dep] || resMap[dep + '.js'];
                     if (child && 'deps' in child) {
                         findNeed(child.deps);
                     }
@@ -161,7 +153,7 @@ var require, define;
                 needNum++;
                 loadScript(dep, updateNeed, onerror);
 
-                var child = resMap[dep];
+                var child = resMap[dep] || resMap[dep + '.js'];
                 if (child && 'deps' in child) {
                     findNeed(child.deps);
                 }
@@ -171,7 +163,7 @@ var require, define;
         function updateNeed() {
             if (0 == needNum--) {
                 var args = [];
-                for(var i = 0, n = names.length; i < n; i++) {
+                for (var i = 0, n = names.length; i < n; i++) {
                     args[i] = require(names[i]);
                 }
 
@@ -188,14 +180,14 @@ var require, define;
 
         // merge `res` & `pkg` fields
         col = obj.res;
-        for(k in col) {
+        for (k in col) {
             if (col.hasOwnProperty(k)) {
                 resMap[k] = col[k];
             }
         }
 
         col = obj.pkg;
-        for(k in col) {
+        for (k in col) {
             if (col.hasOwnProperty(k)) {
                 pkgMap[k] = col[k];
             }
@@ -211,14 +203,13 @@ var require, define;
             var sty = document.createElement('style');
             sty.type = 'text/css';
 
-            if (sty.styleSheet) {       // IE
+            if (sty.styleSheet) { // IE
                 sty.styleSheet.cssText = cfg.content;
             } else {
                 sty.innerHTML = cfg.content;
             }
             head.appendChild(sty);
-        }
-        else if (cfg.url) {
+        } else if (cfg.url) {
             var link = document.createElement('link');
             link.href = cfg.url;
             link.rel = 'stylesheet';
@@ -228,7 +219,9 @@ var require, define;
     };
 
 
-    require.alias = function(id) {return id};
+    require.alias = function(id) {
+        return id.replace(/\.js$/i, '');
+    };
 
     require.timeout = 5000;
 
