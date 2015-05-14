@@ -1,13 +1,15 @@
 /**
  * file: mod.js
- * ver: 1.0.10
- * update: 2015/04/16
+ * ver: 1.0.11
+ * update: 2015/05/14
  *
  * https://github.com/fex-team/mod
  */
 var require, define;
 
 (function(global) {
+    if (require) return; // 避免重复加载而导致已定义模块丢失
+
     var head = document.getElementsByTagName('head')[0],
         loadingMap = {},
         factoryMap = {},
