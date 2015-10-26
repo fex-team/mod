@@ -1,57 +1,68 @@
 /**
- * file: mod.js
+ * @file: mod.js
+ * @author fis
  * ver: 1.0.11
  * update: 2015/05/14
- *
  * https://github.com/fex-team/mod
  */
-var require, define;
+var require;
 
-(function(global) {
-    if (require) return; // 避免重复加载而导致已定义模块丢失
+/* eslint-disable no-unused-vars */
+var define;
 
-    var head = document.getElementsByTagName('head')[0],
-        loadingMap = {},
-        factoryMap = {},
-        modulesMap = {},
-        scriptsMap = {},
-        resMap = {},
-        pkgMap = {};
+(function (global) {
 
-    function createScript(url, onerror) {
-        if (url in scriptsMap) return;
+    // 避免重复加载而导致已定义模块丢失
+    if (require) {
+        return;
+    }
+
+    var head = document.getElementsByTagName('head')[0];
+    var loadingMap = {};
+    var factoryMap = {};
+    var modulesMap = {};
+    var scriptsMap = {};
+    var resMap = {};
+    var pkgMap = {};
+
+    var createScript = function (url, onerror) {
+        if (url in scriptsMap) {
+            return;
+        }
+
         scriptsMap[url] = true;
 
         var script = document.createElement('script');
         if (onerror) {
             var tid = setTimeout(onerror, require.timeout);
 
-            script.onerror = function() {
+            script.onerror = function () {
                 clearTimeout(tid);
                 onerror();
             };
 
-            function onload() {
+            var onload = function () {
                 clearTimeout(tid);
-            }
+            };
 
             if ('onload' in script) {
                 script.onload = onload;
-            } else {
-                script.onreadystatechange = function() {
-                    if (this.readyState == 'loaded' || this.readyState == 'complete') {
+            }
+            else {
+                script.onreadystatechange = function () {
+                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
                         onload();
                     }
-                }
+                };
             }
         }
         script.type = 'text/javascript';
         script.src = url;
         head.appendChild(script);
         return script;
-    }
+    };
 
-    function loadScript(id, callback, onerror) {
+    var loadScript = function (id, callback, onerror) {
         var queue = loadingMap[id] || (loadingMap[id] = []);
         queue.push(callback);
 
@@ -64,16 +75,17 @@ var require, define;
 
         if (pkg) {
             url = pkgMap[pkg].url;
-        } else {
+        }
+        else {
             url = res.url || id;
         }
 
-        createScript(url, onerror && function() {
+        createScript(url, onerror && function () {
             onerror(id);
         });
-    }
+    };
 
-    define = function(id, factory) {
+    define = function (id, factory) {
         id = id.replace(/\.js$/i, '');
         factoryMap[id] = factory;
 
@@ -86,7 +98,7 @@ var require, define;
         }
     };
 
-    require = function(id) {
+    require = function (id) {
 
         // compatible with require([dep, dep2...]) syntax.
         if (id && id.splice) {
@@ -115,7 +127,7 @@ var require, define;
         //
         // factory: function OR value
         //
-        var ret = (typeof factory == 'function') ? factory.apply(mod, [require, mod.exports, mod]) : factory;
+        var ret = (typeof factory === 'function') ? factory.apply(mod, [require, mod.exports, mod]) : factory;
 
         if (ret) {
             mod.exports = ret;
@@ -123,8 +135,8 @@ var require, define;
         return mod.exports;
     };
 
-    require.async = function(names, onload, onerror) {
-        if (typeof names == 'string') {
+    require.async = function (names, onload, onerror) {
+        if (typeof names === 'string') {
             names = [names];
         }
 
@@ -132,6 +144,8 @@ var require, define;
         var needNum = 0;
 
         function findNeed(depArr) {
+            var child;
+
             for (var i = 0, n = depArr.length; i < n; i++) {
                 //
                 // skip loading or loaded
@@ -140,7 +154,7 @@ var require, define;
 
                 if (dep in factoryMap) {
                     // check whether loaded resource's deps is loaded or not
-                    var child = resMap[dep] || resMap[dep + '.js'];
+                    child = resMap[dep] || resMap[dep + '.js'];
                     if (child && 'deps' in child) {
                         findNeed(child.deps);
                     }
@@ -155,7 +169,7 @@ var require, define;
                 needNum++;
                 loadScript(dep, updateNeed, onerror);
 
-                var child = resMap[dep] || resMap[dep + '.js'];
+                child = resMap[dep] || resMap[dep + '.js'];
                 if (child && 'deps' in child) {
                     findNeed(child.deps);
                 }
@@ -163,7 +177,7 @@ var require, define;
         }
 
         function updateNeed() {
-            if (0 == needNum--) {
+            if (0 === needNum--) {
                 var args = [];
                 for (var i = 0, n = names.length; i < n; i++) {
                     args[i] = require(names[i]);
@@ -177,8 +191,9 @@ var require, define;
         updateNeed();
     };
 
-    require.resourceMap = function(obj) {
-        var k, col;
+    require.resourceMap = function (obj) {
+        var k;
+        var col;
 
         // merge `res` & `pkg` fields
         col = obj.res;
@@ -196,22 +211,24 @@ var require, define;
         }
     };
 
-    require.loadJs = function(url) {
+    require.loadJs = function (url) {
         createScript(url);
     };
 
-    require.loadCss = function(cfg) {
+    require.loadCss = function (cfg) {
         if (cfg.content) {
             var sty = document.createElement('style');
             sty.type = 'text/css';
 
             if (sty.styleSheet) { // IE
                 sty.styleSheet.cssText = cfg.content;
-            } else {
+            }
+            else {
                 sty.innerHTML = cfg.content;
             }
             head.appendChild(sty);
-        } else if (cfg.url) {
+        }
+        else if (cfg.url) {
             var link = document.createElement('link');
             link.href = cfg.url;
             link.rel = 'stylesheet';
@@ -221,7 +238,7 @@ var require, define;
     };
 
 
-    require.alias = function(id) {
+    require.alias = function (id) {
         return id.replace(/\.js$/i, '');
     };
 
