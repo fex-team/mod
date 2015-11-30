@@ -132,6 +132,11 @@ var define;
         if (ret) {
             mod.exports = ret;
         }
+
+        if (mod.exports && !mod.exports['default']) {
+            mod.exports['default'] = mod.exports;
+        }
+
         return mod.exports;
     };
 
