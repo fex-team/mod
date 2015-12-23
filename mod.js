@@ -74,10 +74,10 @@ var define;
         var url;
 
         if (pkg) {
-            url = pkgMap[pkg].url;
+            url = pkgMap[pkg].url || pkgMap[pkg].uri;
         }
         else {
-            url = res.url || id;
+            url = res.url || res.uri || id;
         }
 
         createScript(url, onerror && function () {
