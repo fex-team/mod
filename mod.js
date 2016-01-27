@@ -1,8 +1,8 @@
 /**
  * @file: mod.js
  * @author fis
- * ver: 1.0.12
- * update: 2016/01/05
+ * ver: 1.0.13
+ * update: 2016/01/27
  * https://github.com/fex-team/mod
  */
 var require;
@@ -133,7 +133,7 @@ var define;
             mod.exports = ret;
         }
 
-        if (mod.exports && !mod.exports['default'] && Object.defineProperty) {
+        if (mod.exports && !mod.exports['default'] && Object.defineProperty && Object.isExtensible(mod.exports)) {
             Object.defineProperty(mod.exports, 'default', {
                 value: mod.exports
             });
