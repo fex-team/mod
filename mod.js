@@ -137,6 +137,9 @@ var define;
             Object.defineProperty(mod.exports, 'default', {
                 value: mod.exports
             });
+            Object.defineProperty(mod.exports, '__esModule', {
+                value: true
+            });
         }
 
         return mod.exports;
