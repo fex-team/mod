@@ -133,14 +133,14 @@ var define;
             mod.exports = ret;
         }
 
-        if (mod.exports && !mod.exports['default'] && Object.defineProperty && Object.isExtensible(mod.exports)) {
-            Object.defineProperty(mod.exports, 'default', {
-                value: mod.exports
-            });
-            Object.defineProperty(mod.exports, '__esModule', {
-                value: true
-            });
-        }
+        // if (mod.exports && !mod.exports['default'] && Object.defineProperty && Object.isExtensible(mod.exports)) {
+        //     Object.defineProperty(mod.exports, 'default', {
+        //         value: mod.exports
+        //     });
+        //     Object.defineProperty(mod.exports, '__esModule', {
+        //         value: true
+        //     });
+        // }
 
         return mod.exports;
     };
