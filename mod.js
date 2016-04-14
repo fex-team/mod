@@ -160,6 +160,12 @@ var define;
                 //
                 var dep = require.alias(depArr[i]);
 
+                if (dep in needMap) {
+                    continue;
+                }
+
+                needMap[dep] = true;
+                
                 if (dep in factoryMap) {
                     // check whether loaded resource's deps is loaded or not
                     child = resMap[dep] || resMap[dep + '.js'];
@@ -168,12 +174,7 @@ var define;
                     }
                     continue;
                 }
-
-                if (dep in needMap) {
-                    continue;
-                }
-
-                needMap[dep] = true;
+                
                 needNum++;
                 loadScript(dep, updateNeed, onerror);
 
