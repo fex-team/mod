@@ -133,13 +133,6 @@ var define;
             mod.exports = ret;
         }
 
-        // 用 typescript 的时候，把这段加上，用 babel 的时候不需要。
-        // if (mod.exports && !mod.exports['default'] && Object.defineProperty && Object.isExtensible(mod.exports)) {
-        //     Object.defineProperty(mod.exports, 'default', {
-        //         value: mod.exports
-        //     });
-        // }
-
         return mod.exports;
     };
 
