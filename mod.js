@@ -25,64 +25,85 @@ var define;
     var resMap = {};
     var pkgMap = {};
 
-    var createScript = function (url, onerror) {
-        if (url in scriptsMap) {
-            return;
-        }
+    var createScripts = function(queues, onerror){
 
-        scriptsMap[url] = true;
+        var docFrag = document.createDocumentFragment();
 
-        var script = document.createElement('script');
-        if (onerror) {
-            var tid = setTimeout(onerror, require.timeout);
+        for(var i = 0, len = queues.length; i < len; i++){
+            var id = queues[i].id;
+            var url = queues[i].url;
 
-            script.onerror = function () {
-                clearTimeout(tid);
-                onerror();
-            };
-
-            var onload = function () {
-                clearTimeout(tid);
-            };
-
-            if ('onload' in script) {
-                script.onload = onload;
+            if (url in scriptsMap) {
+                continue;
             }
-            else {
-                script.onreadystatechange = function () {
-                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                        onload();
+
+            scriptsMap[url] = true;
+
+            var script = document.createElement('script');
+            if (onerror) {
+                (function(script, id){
+                    var tid = setTimeout(function(){
+                        onerror(id);
+                    }, require.timeout);
+
+                    script.onerror = function () {
+                        clearTimeout(tid);
+                        onerror(id);
+                    };
+
+                    var onload = function () {
+                        clearTimeout(tid);
+                    };
+
+                    if ('onload' in script) {
+                        script.onload = onload;
                     }
-                };
+                    else {
+                        script.onreadystatechange = function () {
+                            if (this.readyState === 'loaded' || this.readyState === 'complete') {
+                                onload();
+                            }
+                        };
+                    }
+                })(script, id);
             }
+            script.type = 'text/javascript';
+            script.src = url;
+
+            docFrag.appendChild(script);
         }
-        script.type = 'text/javascript';
-        script.src = url;
-        head.appendChild(script);
-        return script;
+
+        head.appendChild(docFrag);
     };
 
-    var loadScript = function (id, callback, onerror) {
-        var queue = loadingMap[id] || (loadingMap[id] = []);
-        queue.push(callback);
+    var loadScripts = function(ids, callback, onerror){
+        var queues = [];
+        for(var i = 0, len = ids.length; i < len; i++){
+            var id = ids[i];
+            var queue = loadingMap[id] || (loadingMap[id] = []);
+            queue.push(callback);
 
-        //
-        // resource map query
-        //
-        var res = resMap[id] || resMap[id + '.js'] || {};
-        var pkg = res.pkg;
-        var url;
+            //
+            // resource map query
+            //
+            var res = resMap[id] || resMap[id + '.js'] || {};
+            var pkg = res.pkg;
+            var url;
 
-        if (pkg) {
-            url = pkgMap[pkg].url || pkgMap[pkg].uri;
+            if (pkg) {
+                url = pkgMap[pkg].url || pkgMap[pkg].uri;
+            }
+            else {
+                url = res.url || res.uri || id;
+            }
+
+            queues.push({
+                id: id,
+                url: url
+            });
         }
-        else {
-            url = res.url || res.uri || id;
-        }
 
-        createScript(url, onerror && function () {
-            onerror(id);
-        });
+        createScripts(queues, onerror);
     };
 
     define = function (id, factory) {
@@ -143,6 +164,7 @@ var define;
 
         var needMap = {};
         var needNum = 0;
+        var needLoad = [];
 
         function findNeed(depArr) {
             var child;
@@ -158,7 +180,7 @@ var define;
                 }
 
                 needMap[dep] = true;
-                
+
                 if (dep in factoryMap) {
                     // check whether loaded resource's deps is loaded or not
                     child = resMap[dep] || resMap[dep + '.js'];
@@ -167,9 +189,9 @@ var define;
                     }
                     continue;
                 }
-                
+
+                needLoad.push(dep);
                 needNum++;
-                loadScript(dep, updateNeed, onerror);
 
                 child = resMap[dep] || resMap[dep + '.js'];
                 if (child && 'deps' in child) {
@@ -190,6 +212,7 @@ var define;
         }
 
         findNeed(names);
+        loadScripts(needLoad, updateNeed, onerror);
         updateNeed();
     };
 
@@ -214,7 +237,16 @@ var define;
     };
 
     require.loadJs = function (url) {
-        createScript(url);
+        if (url in scriptsMap) {
+            return;
+        }
+
+        scriptsMap[url] = true;
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        head.appendChild(script);
     };
 
     require.loadCss = function (cfg) {
