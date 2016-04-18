@@ -29,41 +29,43 @@ var define;
 
         var docFrag = document.createDocumentFragment();
 
-        for(var i = 0; i < queues.length; i++){
+        for(var i = 0, len = queues.length; i < len; i++){
             var id = queues[i].id;
             var url = queues[i].url;
 
             if (url in scriptsMap) {
-                return;
+                continue;
             }
 
             scriptsMap[url] = true;
 
             var script = document.createElement('script');
             if (onerror) {
-                var tid = setTimeout(function(){
-                    onerror(id);
-                }, require.timeout);
+                (function(script, id){
+                    var tid = setTimeout(function(){
+                        onerror(id);
+                    }, require.timeout);
 
-                script.onerror = function () {
-                    clearTimeout(tid);
-                    onerror(id);
-                };
-
-                var onload = function () {
-                    clearTimeout(tid);
-                };
-
-                if ('onload' in script) {
-                    script.onload = onload;
-                }
-                else {
-                    script.onreadystatechange = function () {
-                        if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                            onload();
-                        }
+                    script.onerror = function () {
+                        clearTimeout(tid);
+                        onerror(id);
                     };
-                }
+
+                    var onload = function () {
+                        clearTimeout(tid);
+                    };
+
+                    if ('onload' in script) {
+                        script.onload = onload;
+                    }
+                    else {
+                        script.onreadystatechange = function () {
+                            if (this.readyState === 'loaded' || this.readyState === 'complete') {
+                                onload();
+                            }
+                        };
+                    }
+                })(script, id);
             }
             script.type = 'text/javascript';
             script.src = url;
@@ -76,7 +78,7 @@ var define;
 
     var loadScripts = function(ids, callback, onerror){
         var queues = [];
-        for(var i = 0; i < ids.length; i++){
+        for(var i = 0, len = ids.length; i < len; i++){
             var id = ids[i];
             var queue = loadingMap[id] || (loadingMap[id] = []);
             queue.push(callback);
