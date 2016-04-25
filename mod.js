@@ -215,6 +215,12 @@ var define;
         loadScripts(needLoad, updateNeed, onerror);
         updateNeed();
     };
+    
+    require.ensure = function(names, callback) {
+      require.async(names, function() {
+        callback && callback.call(this, require);
+      });
+    };
 
     require.resourceMap = function (obj) {
         var k;
