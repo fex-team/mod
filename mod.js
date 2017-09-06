@@ -25,11 +25,11 @@ var define;
     var resMap = {};
     var pkgMap = {};
 
-    var createScripts = function(queues, onerror){
+    var createScripts = function (queues, onerror) {
 
         var docFrag = document.createDocumentFragment();
 
-        for(var i = 0, len = queues.length; i < len; i++){
+        for (var i = 0, len = queues.length; i < len; i++) {
             var id = queues[i].id;
             var url = queues[i].url;
 
@@ -41,8 +41,8 @@ var define;
 
             var script = document.createElement('script');
             if (onerror) {
-                (function(script, id){
-                    var tid = setTimeout(function(){
+                (function (script, id) {
+                    var tid = setTimeout(function () {
                         onerror(id);
                     }, require.timeout);
 
@@ -76,9 +76,9 @@ var define;
         head.appendChild(docFrag);
     };
 
-    var loadScripts = function(ids, callback, onerror){
+    var loadScripts = function (ids, callback, onerror) {
         var queues = [];
-        for(var i = 0, len = ids.length; i < len; i++){
+        for (var i = 0, len = ids.length; i < len; i++) {
             var id = ids[i];
             var queue = loadingMap[id] || (loadingMap[id] = []);
             queue.push(callback);
@@ -215,11 +215,11 @@ var define;
         loadScripts(needLoad, updateNeed, onerror);
         updateNeed();
     };
-    
-    require.ensure = function(names, callback) {
-      require.async(names, function() {
-        callback && callback.call(this, require);
-      });
+
+    require.ensure = function (names, callback) {
+        require.async(names, function () {
+            callback && callback.call(this, require);
+        });
     };
 
     require.resourceMap = function (obj) {
